@@ -6,12 +6,14 @@ const require = createRequire(import.meta.url);
 type Manifest = {
   manifest: {
     $: Record<string, string>;
+    "uses-permission"?: { $: Record<string, string> }[];
     application: { $: Record<string, string>; provider?: { $: Record<string, string> }[] }[];
   };
 };
-const { removeClipboardProvider, CLIPBOARD_PROVIDER } = require("../plugins/with-android-manifest-hardening.js") as {
+const { removeClipboardProvider, removeDebugOverlayPermission, CLIPBOARD_PROVIDER } = require("../plugins/with-android-manifest-hardening.js") as {
   removeClipboardProvider: (m: Manifest) => Manifest;
   CLIPBOARD_PROVIDER: string;
+  removeDebugOverlayPermission: (m: Manifest) => boolean;
 };
 
 describe("with-android-manifest-hardening", () => {
@@ -33,6 +35,18 @@ describe("with-android-manifest-hardening", () => {
   it("is idempotent across prebuilds (no duplicate entries)", () => {
     const out = removeClipboardProvider(removeClipboardProvider(base()));
     expect(out.manifest.application[0]!.provider!.filter((p) => p.$["android:name"] === CLIPBOARD_PROVIDER)).toHaveLength(1);
+  });
+
+  it("drops the debug template's overlay permission and preserves other permissions", () => {
+    const m = base();
+    const internet = { $: { "android:name": "android.permission.INTERNET" } };
+    m.manifest["uses-permission"] = [
+      { $: { "android:name": "android.permission.SYSTEM_ALERT_WINDOW" } },
+      internet,
+    ];
+    expect(removeDebugOverlayPermission(m)).toBe(true);
+    expect(m.manifest["uses-permission"]).toEqual([internet]);
+    expect(removeDebugOverlayPermission(m)).toBe(false);
   });
 
   it("app.config blocks SYSTEM_ALERT_WINDOW and loads the plugin", async () => {
