@@ -40,7 +40,7 @@ import { useAuthStore } from "@/data/auth-store";
 import { useWorkspaceStore } from "@/data/workspace-store";
 import { getToken } from "@/data/secure-storage";
 import { api } from "@/data/api";
-import { getCfAccessHeaders, getServerBaseUrl } from "@/data/server-config-store";
+import { getServerBaseUrl } from "@/data/server-config-store";
 import { wsUrlFor } from "@/lib/server-config";
 import { CLIENT_OS } from "@/lib/client-os";
 import { WSClient } from "./ws-client";
@@ -86,7 +86,6 @@ export function RealtimeProvider({ children }: { children: React.ReactNode }) {
 
       ws = new WSClient({
         url: wsUrlFor(baseUrl),
-        headers: getCfAccessHeaders(),
         clientOs: CLIENT_OS,
         token,
         // Re-read per connection rather than reusing the token captured

@@ -56,7 +56,7 @@ class InboxSocket(
     fun onUnauthorized()
     fun onWorkspaceLost(slug: String)
     fun onDisconnected()
-    /** The upgrade was refused with 403 (Cloudflare Access?); retrying. */
+    /** The upgrade was refused with 403; retrying. */
     fun onRefused()
   }
 

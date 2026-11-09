@@ -35,26 +35,14 @@ vi.mock("expo-secure-store", () => ({
   }),
 }));
 
-const serverConfig = vi.hoisted(() => ({
-  value: null as null | {
-    mode: "cloudflare" | "direct";
-    baseUrl: string;
-    cfClientId: string;
-    cfClientSecret: string;
-  },
-}));
+const server = vi.hoisted(() => ({ baseUrl: null as string | null }));
 
 vi.mock("@/data/server-config-store", async (importOriginal) => {
   const real = await importOriginal<typeof import("@/data/server-config-store")>();
-  return { ...real, getServerConfig: () => serverConfig.value };
+  return { ...real, getServerBaseUrl: () => server.baseUrl };
 });
 
-import {
-  cfCredentialsChanged,
-  clearNotifySession,
-  handOverSession,
-  renewNotifySessionForConfig,
-} from "./session";
+import { clearNotifySession, handOverSession } from "./session";
 import { clearToken } from "@/data/secure-storage";
 
 beforeEach(() => {
@@ -62,31 +50,16 @@ beforeEach(() => {
   native.enabled = true;
   native.setCredentials.mockClear();
   native.clearCredentials.mockClear();
-  serverConfig.value = {
-    mode: "cloudflare",
-    baseUrl: "https://multica.example",
-    cfClientId: "id.access",
-    cfClientSecret: "secret",
-  };
+  server.baseUrl = "https://multica.example.ts.net:8443";
 });
 
 describe("handOverSession", () => {
-  it("passes token and CF headers in cloudflare mode", () => {
+  it("passes only the tailnet URL and Multica token", () => {
     expect(handOverSession("jwt")).toBe(true);
     expect(native.setCredentials).toHaveBeenCalledWith({
-      baseUrl: "https://multica.example",
+      baseUrl: server.baseUrl,
       token: "jwt",
-      cfClientId: "id.access",
-      cfClientSecret: "secret",
     });
-  });
-
-  it("sends no CF headers in direct mode", () => {
-    serverConfig.value = { mode: "direct", baseUrl: "https://10.0.0.1", cfClientId: "x", cfClientSecret: "y" };
-    handOverSession("jwt");
-    expect(native.setCredentials).toHaveBeenCalledWith(
-      expect.objectContaining({ cfClientId: "", cfClientSecret: "" }),
-    );
   });
 
   it("does nothing while push is off, without token or without server", () => {
@@ -94,7 +67,7 @@ describe("handOverSession", () => {
     expect(handOverSession("jwt")).toBe(false);
     native.enabled = true;
     expect(handOverSession(null)).toBe(false);
-    serverConfig.value = null;
+    server.baseUrl = null;
     expect(handOverSession("jwt")).toBe(false);
     expect(native.setCredentials).not.toHaveBeenCalled();
   });
@@ -118,42 +91,5 @@ describe("clearing", () => {
     const { useServerConfigStore } = await import("@/data/server-config-store");
     await useServerConfigStore.getState().clear();
     expect(calls[0]).toBe("native-clear");
-  });
-});
-
-describe("new Cloudflare credentials on the same server", () => {
-  const cf = (id: string, secret: string) => ({
-    mode: "cloudflare" as const,
-    baseUrl: "https://multica.example",
-    cfClientId: id,
-    cfClientSecret: secret,
-  });
-
-  it("detects a changed CF pair only on the same server and mode", () => {
-    expect(cfCredentialsChanged(cf("id.access", "secret"), cf("id.access", "new-secret"))).toBe(true);
-    expect(cfCredentialsChanged(cf("id.access", "secret"), cf("new.access", "secret"))).toBe(true);
-    expect(cfCredentialsChanged(cf("id.access", "secret"), cf("id.access", "secret"))).toBe(false);
-    // Other server or mode: the sign-out path handles it.
-    expect(cfCredentialsChanged(cf("a", "b"), { ...cf("a", "c"), baseUrl: "https://other.example" })).toBe(false);
-    expect(
-      cfCredentialsChanged(
-        { mode: "direct", baseUrl: "https://multica.example", cfClientId: "", cfClientSecret: "" },
-        cf("a", "b"),
-      ),
-    ).toBe(false);
-    expect(cfCredentialsChanged(null, cf("a", "b"))).toBe(false);
-  });
-
-  it("clears the native copy first, then hands over with the new headers", () => {
-    // The store already holds the saved config when the screen calls this.
-    serverConfig.value = cf("id.access", "new-secret");
-    expect(renewNotifySessionForConfig(cf("id.access", "secret"), cf("id.access", "new-secret"), "jwt")).toBe(true);
-    expect(calls[0]).toBe("native-clear");
-    expect(calls[1]).toContain('"cfClientSecret":"new-secret"');
-  });
-
-  it("does nothing when the CF pair is unchanged", () => {
-    expect(renewNotifySessionForConfig(cf("id.access", "secret"), cf("id.access", "secret"), "jwt")).toBe(false);
-    expect(calls).toEqual([]);
   });
 });

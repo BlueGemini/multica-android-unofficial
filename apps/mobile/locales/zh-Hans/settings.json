@@ -87,8 +87,7 @@
   "groups.mentions_description": "有人用 @ 提到你时，包括 @all 和 @squad。",
   "server": {
     "title": "服务器连接",
-    "subtitle_cloudflare": "Cloudflare Access · {{server}}",
-    "subtitle_direct": "本地 / VPN · {{server}}"
+    "subtitle_direct": "Tailscale · {{server}}"
   },
   "push": {
     "title": "本设备推送",
@@ -158,7 +157,7 @@
     "relogin_text": "请重新登录",
     "me": "我",
     "debug_test": "发送测试通知（调试）",
-    "connection_refused": "Multica · 连接被拒绝（Cloudflare Access？）",
+    "connection_refused": "Multica · 连接被拒绝",
     "no_workspace_text": "没有可用于通知的工作区。请在应用中检查。"
   },
   "view": {

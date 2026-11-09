@@ -46,8 +46,6 @@ export interface NotifyStatus {
 export interface NotifyCredentials {
   baseUrl: string;
   token: string;
-  cfClientId: string;
-  cfClientSecret: string;
 }
 
 export interface NotifyWorkspace {

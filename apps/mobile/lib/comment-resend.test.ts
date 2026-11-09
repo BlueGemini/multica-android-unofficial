@@ -12,8 +12,8 @@ import {
   type CommentSendState,
 } from "./comment-resend";
 
-function apiError(status: number, name = "ApiError") {
-  return Object.assign(new Error(`status ${status}`), { name, status });
+function apiError(status: number) {
+  return Object.assign(new Error(`status ${status}`), { name: "ApiError", status });
 }
 
 function entry(over: Partial<TimelineEntry> = {}): TimelineEntry {
@@ -41,7 +41,6 @@ describe("isTransientSendError", () => {
     ["400", apiError(400), false],
     ["403", apiError(403), false],
     ["404", apiError(404), false],
-    ["Cloudflare Access block", apiError(200, "AccessBlockedError"), false],
     ["ended session", new CommentSessionEndedError(), false],
   ])("%s → %s", (_label, err, expected) => {
     expect(isTransientSendError(err)).toBe(expected);

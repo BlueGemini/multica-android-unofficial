@@ -30,7 +30,6 @@ import { Image as ExpoImage } from "expo-image";
 import type { Attachment } from "@multica/core/types";
 import { matchAttachmentByURL } from "@multica/core/attachments/image-sequence";
 import { resolveAttachmentUrl } from "@/lib/attachment-url";
-import { authHeadersFor } from "@/lib/image-source";
 import { useLightbox } from "./lightbox-provider";
 import { useImageSequence } from "./image-sequence";
 
@@ -67,11 +66,6 @@ export function MarkdownImage({ uri, attachments }: Props) {
     return resolveAttachmentUrl(candidate) ?? uri;
   }, [uri, attachments]);
 
-  // Cloudflare Access service token for same-origin images (undefined in
-  // direct mode / for external URLs). Both the size probe and the render
-  // must carry it, otherwise Access answers with its login page.
-  const headers = useMemo(() => authHeadersFor(resolvedUri), [resolvedUri]);
-
   useEffect(() => {
     let cancelled = false;
     const onSize = (w: number, h: number) => {
@@ -84,21 +78,17 @@ export function MarkdownImage({ uri, attachments }: Props) {
       // still shows the muted background instead of collapsing.
       if (!cancelled) setAspect(16 / 9);
     };
-    if (headers) {
-      RNImage.getSizeWithHeaders(resolvedUri, headers, onSize, onFailure);
-    } else {
-      RNImage.getSize(resolvedUri, onSize, onFailure);
-    }
+    RNImage.getSize(resolvedUri, onSize, onFailure);
     return () => {
       cancelled = true;
     };
-  }, [resolvedUri, headers]);
+  }, [resolvedUri]);
 
   return (
     <Pressable onPress={() => open(resolvedUri, sequence)}>
       <View className="rounded-lg overflow-hidden bg-muted">
         <ExpoImage
-          source={headers ? { uri: resolvedUri, headers } : { uri: resolvedUri }}
+          source={{ uri: resolvedUri }}
           style={{ width: "100%", aspectRatio: aspect ?? 16 / 9 }}
           contentFit="contain"
           transition={150}

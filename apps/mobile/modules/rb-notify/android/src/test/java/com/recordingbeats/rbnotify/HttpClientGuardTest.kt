@@ -16,6 +16,15 @@ import org.junit.Test
 
 class HttpClientGuardTest {
   @Test
+  fun websocketClientKeepsTheDirectEndpointPolicyWhenCloned() {
+    val client = OkHttpClient.Builder().requireDirectEndpoint().build()
+    val webSocketClient = client.newBuilder().build()
+    assertFalse(client.followRedirects)
+    assertFalse(webSocketClient.followRedirects)
+    assertFalse(webSocketClient.followSslRedirects)
+  }
+
+  @Test
   fun firstReportedNetworkIsNoChange() {
     val t = NetworkChangeTracker()
     assertFalse(t.onAvailable(1))

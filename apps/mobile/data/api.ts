@@ -229,16 +229,12 @@ import type {
 } from "./autopilot-schemas";
 import { buildCommentCreateBody, buildCommentUpdateBody } from "./revision";
 
-import { getCfAccessHeaders, getServerBaseUrl } from "./server-config-store";
-import { looksLikeAccessBlock } from "@/lib/server-config";
+import { getServerBaseUrl } from "./server-config-store";
 import { CLIENT_OS } from "@/lib/client-os";
 import { logger } from "@/lib/logger";
 
 /**
- * Base URL comes from the user's server setup (data/server-config-store.ts),
- * not from a build-time env var: the same APK talks to
- * `https://multica.example.com` through Cloudflare Access or to the
- * server's LAN address over VPN, whichever the user picked.
+ * Use the tailnet HTTPS address saved in the server setup.
  *
  * Callers never reach here unconfigured — app/index.tsx routes to the setup
  * screen first — but a request fired before that would otherwise build a
@@ -305,50 +301,6 @@ export class ApiError extends Error {
   }
 }
 
-/**
- * Cloudflare Access answered instead of Multica — the service token is
- * missing, wrong or revoked. Kept as its own class so screens can show
- * "check your service token" rather than a generic failure, and so the
- * 401 sign-out hook is NOT triggered (the Multica session may be fine).
- */
-export class AccessBlockedError extends ApiError {
-  constructor(status: number) {
-    super("Cloudflare Access blocked the request", status);
-    this.name = "AccessBlockedError";
-  }
-}
-
-/**
- * Inspect a fetch Response for an Access interception. RN follows the 302
- * to the Access login page, so a "successful" 200 whose final URL is on
- * cloudflareaccess.com is the usual symptom.
- */
-async function accessBlockFrom(
-  res: Response,
-  requestUrl: string,
-): Promise<AccessBlockedError | null> {
-  const contentType = res.headers?.get?.("content-type") ?? null;
-  let bodyStart: string | null = null;
-  if (contentType && /text\/html/i.test(contentType)) {
-    // Multica never answers an API call with HTML; peek at the page so the
-    // Access login page is recognised even when RN hides the redirect.
-    try {
-      bodyStart = (await res.clone().text()).slice(0, 2048);
-    } catch {
-      bodyStart = null;
-    }
-  }
-  const blocked = looksLikeAccessBlock({
-    status: res.status,
-    url: res.url,
-    contentType,
-    server: res.headers?.get?.("server") ?? null,
-    bodyStart,
-    requestUrl,
-  });
-  return blocked ? new AccessBlockedError(res.status) : null;
-}
-
 export interface ApiClientOptions {
   /** Called once when the server returns 401. The platform layer wires this
    *  to clear the token + navigate to /login so a stale token doesn't keep
@@ -391,8 +343,6 @@ class ApiClient {
       "X-Client-OS": CLIENT_OS,
       "X-Client-Version": "0.1.0",
       "X-Request-ID": rid,
-      // Cloudflare Access service token (empty object in direct mode).
-      ...getCfAccessHeaders(),
       ...((init.headers as Record<string, string>) ?? {}),
     };
     if (this.token) {
@@ -433,6 +383,7 @@ class ApiClient {
     try {
       res = await fetch(requestUrl, {
         ...init,
+        redirect: "error",
         signal: controller.signal,
         headers,
       });
@@ -461,17 +412,6 @@ class ApiClient {
     clearTimeout(timeoutId);
     callerSignal?.removeEventListener("abort", onCallerAbort);
     const duration = Date.now() - start;
-
-    // Checked before `res.ok`: a followed Access redirect is a 200.
-    const accessBlock = await accessBlockFrom(res, requestUrl);
-    if (accessBlock) {
-      logger.warn(`[api] ← ACCESS BLOCKED ${path}`, {
-        rid,
-        status: res.status,
-        duration: `${duration}ms`,
-      });
-      throw accessBlock;
-    }
 
     if (!res.ok) {
       // 401 sign-out hook: invoke once, let the platform layer (auth-store)
@@ -2264,7 +2204,6 @@ class ApiClient {
       "X-Client-OS": CLIENT_OS,
       "X-Client-Version": "0.1.0",
       "X-Request-ID": rid,
-      ...getCfAccessHeaders(),
     };
     if (this.token) headers["Authorization"] = `Bearer ${this.token}`;
     const slug = getCurrentSlug();
@@ -2284,16 +2223,11 @@ class ApiClient {
 
     const res = await fetch(requestUrl, {
       method: "POST",
+      redirect: "error",
       headers,
       body: formData,
     });
     const duration = Date.now() - start;
-
-    const accessBlock = await accessBlockFrom(res, requestUrl);
-    if (accessBlock) {
-      logger.warn(`[api] ← ACCESS BLOCKED ${path}`, { rid, status: res.status });
-      throw accessBlock;
-    }
 
     if (!res.ok) {
       if (res.status === 401) this.options.onUnauthorized?.();

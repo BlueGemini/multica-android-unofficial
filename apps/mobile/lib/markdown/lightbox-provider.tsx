@@ -25,7 +25,6 @@ import { createContext, use, useMemo, useState, type ReactNode } from "react";
 import { View } from "react-native";
 import ImageView from "react-native-image-viewing";
 import { Text } from "@/components/ui/text";
-import { authImageSource } from "@/lib/image-source";
 
 interface LightboxApi {
   /**
@@ -48,7 +47,7 @@ export function useLightbox(): LightboxApi {
 }
 
 interface Viewing {
-  images: { uri: string; headers?: Record<string, string> }[];
+  images: { uri: string }[];
   index: number;
 }
 
@@ -70,7 +69,7 @@ export function LightboxProvider({ children }: { children: ReactNode }) {
         setCurrentIndex(index);
         // Same-origin images need the Cloudflare Access headers here too —
         // the viewer loads them with its own <Image>.
-        setViewing({ images: images.map((u) => authImageSource(u)), index });
+        setViewing({ images: images.map((uri) => ({ uri })), index });
       },
     }),
     [],

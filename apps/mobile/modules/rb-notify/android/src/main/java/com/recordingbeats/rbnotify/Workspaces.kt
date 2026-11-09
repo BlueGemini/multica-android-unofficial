@@ -34,9 +34,8 @@ enum class AuthFailure {
   WorkspaceLost,
   /**
    * HTTP 403 on the upgrade. The server only answers 403 for cookie auth,
-   * which the service does not use, so it comes from Cloudflare Access
-   * (e.g. an expired service token): reconnect with backoff and tell the
-   * user, never drop workspaces or the session.
+   * which the service does not use. Reconnect with backoff and tell the
+   * user while preserving workspaces and the session.
    */
   Refused,
   /** Network, timeout, protocol: reconnect with backoff, keep the session. */
@@ -53,8 +52,7 @@ enum class AuthFailure {
     /** HTTP status of a refused upgrade; null = no response (network). */
     fun fromHttp(code: Int?): AuthFailure = when (code) {
       401 -> Rejected
-      // 403 or a redirect (we never follow one): Cloudflare Access, e.g.
-      // an expired service token sent to the Access login page.
+      // 403 or a redirect (we never follow one): the HTTP upgrade was refused.
       403, in 300..399 -> Refused
       404 -> WorkspaceLost // "workspace not found"
       else -> Transient

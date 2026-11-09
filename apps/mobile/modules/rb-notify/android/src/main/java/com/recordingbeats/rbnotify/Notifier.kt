@@ -53,7 +53,7 @@ class Notifier(private val context: Context, private val prefs: NotifyPrefs) {
   /** Ongoing notification of the foreground service. Tap → notification settings. */
   fun connectionNotification(connected: Boolean, count: Int, refused: Boolean = false): android.app.Notification {
     val title = when {
-      refused && !connected -> prefs.string("connection_refused", "Multica · connection refused (Cloudflare Access?)")
+      refused && !connected -> prefs.string("connection_refused", "Multica · connection refused")
       !connected -> prefs.string("connection_wait", "Multica · reconnecting…")
       count > 1 -> prefs.string("connection_on_many", "Multica connected · {count} workspaces")
         .replace("{count}", count.toString())

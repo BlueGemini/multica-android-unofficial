@@ -18,8 +18,6 @@ import expo.modules.kotlin.records.Record
 class CredentialsRecord : Record {
   @Field val baseUrl: String = ""
   @Field val token: String = ""
-  @Field val cfClientId: String = ""
-  @Field val cfClientSecret: String = ""
 }
 
 class WorkspaceRecord : Record {
@@ -53,7 +51,7 @@ class RbNotifyModule : Module() {
 
     Function("setCredentials") { c: CredentialsRecord ->
       if (c.baseUrl.isEmpty() || c.token.isEmpty()) return@Function false
-      CredentialStore(ctx).save(Credentials(c.baseUrl, c.token, c.cfClientId, c.cfClientSecret))
+      CredentialStore(ctx).save(Credentials(c.baseUrl, c.token))
       NotifyPrefs(ctx).reloginShown = false
       Notifier.get(ctx).reopen() // new session after a logout
       true

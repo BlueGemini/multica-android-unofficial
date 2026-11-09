@@ -85,8 +85,7 @@
   },
   "server": {
     "title": "Server connection",
-    "subtitle_cloudflare": "Cloudflare Access · {{server}}",
-    "subtitle_direct": "Local / VPN · {{server}}"
+    "subtitle_direct": "Tailscale · {{server}}"
   },
   "push": {
     "title": "Push on this device",
@@ -156,7 +155,7 @@
     "relogin_text": "Please sign in again",
     "me": "Me",
     "debug_test": "Send test notification (debug)",
-    "connection_refused": "Multica · connection refused (Cloudflare Access?)",
+    "connection_refused": "Multica · connection refused",
     "no_workspace_text": "No workspace left for notifications. Check them in the app."
   },
   "view": {

@@ -65,6 +65,20 @@ describe("WSClient application heartbeat", () => {
     vi.restoreAllMocks();
   });
 
+  it("dials the exact WebSocket path and custom HTTPS port", () => {
+    const client = new WSClient({
+      url: "wss://multica.example.ts.net:8443/proxy/ws",
+      workspaceSlug: "test workspace",
+      clientOs: "android",
+      token: "token",
+    });
+    client.connect();
+    expect(MockWebSocket.instances[0].url).toBe(
+      "wss://multica.example.ts.net:8443/proxy/ws?workspace_slug=test+workspace&client_platform=mobile&client_os=android",
+    );
+    client.disconnect();
+  });
+
   it("reconnects a stale OPEN socket through the jittered backoff path", () => {
     vi.spyOn(Math, "random").mockReturnValue(0);
     const { client, socket } = connectAuthenticatedClient();

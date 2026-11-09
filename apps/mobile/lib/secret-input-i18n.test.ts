@@ -11,24 +11,15 @@ const KEYS = [
   "paste_label",
   "paste_ok",
   "paste_empty",
-  "paste_block",
   "paste_secret_rejected",
   "paste_not_token",
-  "paste_hint_empty",
-  "paste_hint_client_id_format",
-  "paste_hint_secret_format",
-  "paste_hint_url_format",
-  "cf_secret_saved",
-  "cf_secret_show",
   "clear_clipboard",
   "clear_clipboard_hint",
-  "screenshot_blocked",
-  "secret_paste_hint",
 ] as const;
 
 describe("secret input strings", () => {
-  it("drops the unused reveal text (the eye toggle is a switch)", () => {
-    for (const file of [de, en, zh]) expect(file.server).not.toHaveProperty("cf_secret_hide");
+  it("does not ship the Cloudflare setup strings", () => {
+    for (const file of [de, en, zh]) expect(file.server).not.toHaveProperty("mode_cloudflare");
   });
 
   for (const [lang, file] of Object.entries({ de, en, "zh-Hans": zh })) {

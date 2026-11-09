@@ -6,7 +6,6 @@ import { api } from "./api";
 // store pulls in expo-secure-store, so stub the sync getters the client uses.
 vi.mock("@/data/server-config-store", () => ({
   getServerBaseUrl: () => "https://api.example.test",
-  getCfAccessHeaders: () => ({}),
 }));
 vi.mock("@/lib/client-os", () => ({ CLIENT_OS: "android" }));
 

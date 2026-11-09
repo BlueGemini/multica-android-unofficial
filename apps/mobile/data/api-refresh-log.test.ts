@@ -7,7 +7,6 @@ import { api } from "./api";
 // the whole body as `received`).
 vi.mock("@/data/server-config-store", () => ({
   getServerBaseUrl: () => "https://api.example.test",
-  getCfAccessHeaders: () => ({ "CF-Access-Client-Secret": "cf-secret-value-1234" }),
 }));
 vi.mock("@/lib/client-os", () => ({ CLIENT_OS: "android" }));
 vi.mock("@/data/workspace-store", () => ({ getCurrentSlug: () => null }));
@@ -55,7 +54,6 @@ describe("refreshSession logging", () => {
     expect(everything).toContain("schema validation failed");
     expect(everything).toContain("check_again_in_seconds");
     expect(everything).not.toContain(JWT);
-    expect(everything).not.toContain("cf-secret-value-1234");
     api.setToken(null);
   });
 

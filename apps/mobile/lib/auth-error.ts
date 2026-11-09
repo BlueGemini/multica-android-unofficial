@@ -8,14 +8,6 @@ type Translate = (key: string) => string;
 
 export function mapAuthError(err: unknown, fallback: string, t?: Translate): string {
   if (!(err instanceof Error)) return fallback;
-  // Cloudflare Access intercepted the request: the service token is
-  // missing, wrong or revoked. Checked by name rather than instanceof so
-  // this helper stays free of the data-layer import.
-  if (err.name === "AccessBlockedError") {
-    return t
-      ? t("server.access_blocked")
-      : "Cloudflare Access blocked the request. Check the service token in server settings.";
-  }
   if (err.name === "ApiError" && /server not configured/i.test(err.message)) {
     return t
       ? t("server.not_configured")
@@ -39,15 +31,12 @@ export function mapAuthError(err: unknown, fallback: string, t?: Translate): str
 
 /**
  * Debug token login: which message a
- * failed sign-in shows. Cloudflare Access blocking the request is not "the
- * server rejected this token" — the token was never checked. Network
- * trouble gets its own text too. Everything else stays generic: the
+ * failed sign-in shows. Network trouble gets its own text. The
  * server's own message could echo the token.
  */
 export function tokenLoginErrorKey(
   err: unknown,
-): "server.access_blocked" | "verify.network" | "token_login.failed" {
-  if (err instanceof Error && err.name === "AccessBlockedError") return "server.access_blocked";
+): "verify.network" | "token_login.failed" {
   // data/api.ts reports a request timeout as ApiError with status 0
   // ("Request timed out after …"): no server answer, so a network problem.
   if (err instanceof Error && err.name === "ApiError" && (err as { status?: unknown }).status === 0) {

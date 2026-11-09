@@ -40,7 +40,6 @@
 import { useMemo } from "react";
 import { Image, Pressable, View } from "react-native";
 import { SymbolIcon, type SymbolName } from "@/components/ui/symbol-icon";
-import { authImageSource } from "@/lib/image-source";
 import { router, usePathname } from "expo-router";
 import { useQuery } from "@tanstack/react-query";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -224,7 +223,7 @@ function UserCard({
     >
       {user?.avatar_url ? (
         <Image
-          source={authImageSource(user.avatar_url)}
+          source={{ uri: user.avatar_url }}
           className="size-8 rounded-full bg-muted"
         />
       ) : (

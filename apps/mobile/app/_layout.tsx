@@ -68,7 +68,7 @@ function AuthInitializer({ children }: { children: React.ReactNode }) {
     // is restored and the identity probe has settled, so it never races the
     // first getMe(); a no-op when there is no session to extend.
     //
-    // The server connection (base URL, Cloudflare Access token) is read
+    // The tailnet server URL is read
     // from SecureStore first: the identity probe needs it to build its URL.
     void useServerConfigStore
       .getState()

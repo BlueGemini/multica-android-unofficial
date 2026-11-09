@@ -28,23 +28,11 @@ import javax.crypto.spec.GCMParameterSpec
 data class Credentials(
   val baseUrl: String,
   val token: String,
-  /** Cloudflare Access service token, both empty in direct mode. */
-  val cfClientId: String,
-  val cfClientSecret: String,
 ) {
   fun toJson(): String = JSONObject()
     .put("baseUrl", baseUrl)
     .put("token", token)
-    .put("cfClientId", cfClientId)
-    .put("cfClientSecret", cfClientSecret)
     .toString()
-
-  /** Host the CF headers may be sent to (only the configured host). */
-  fun host(): String? = try {
-    java.net.URI(baseUrl).host
-  } catch (_: Exception) {
-    null
-  }
 
   companion object {
     fun fromJson(text: String): Credentials? = try {
@@ -52,8 +40,6 @@ data class Credentials(
       Credentials(
         o.getString("baseUrl"),
         o.getString("token"),
-        o.optString("cfClientId", ""),
-        o.optString("cfClientSecret", ""),
       ).takeIf { it.baseUrl.isNotEmpty() && it.token.isNotEmpty() }
     } catch (_: Exception) {
       null

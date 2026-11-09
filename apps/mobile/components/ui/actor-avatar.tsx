@@ -18,7 +18,6 @@
  */
 import { Image, View } from "react-native";
 import { Ionicons } from "@/components/ui/ionicons";
-import { authImageSource } from "@/lib/image-source";
 import { useColorScheme } from "nativewind";
 import { Text } from "@/components/ui/text";
 import { cn } from "@/lib/utils";
@@ -145,7 +144,7 @@ function BareAvatar({
   if (url) {
     return (
       <Image
-        source={authImageSource(url)}
+        source={{ uri: url }}
         accessibilityLabel={displayName}
         style={{ width: size, height: size, borderRadius: radius }}
         className="bg-muted"

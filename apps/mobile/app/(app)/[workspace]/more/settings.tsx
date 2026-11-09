@@ -35,7 +35,6 @@ import {
 import { THEME } from "@/lib/theme";
 import { useLocalePreference, useT, type LocalePreference } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
-import { authImageSource } from "@/lib/image-source";
 import { useServerConfigStore } from "@/data/server-config-store";
 import { serverLabel } from "@/lib/server-config";
 import { READING_WIDTH_STYLE } from "@/components/ui/reading-width";
@@ -132,7 +131,7 @@ export default function SettingsPage() {
   const goServer = () =>
     router.push({ pathname: "/server-setup", params: { from: "settings" } });
   const serverSubtitle = server
-    ? t(`server.subtitle_${server.mode}`, { server: serverLabel(server) })
+    ? t("server.subtitle_direct", { server: serverLabel(server) })
     : undefined;
 
   return (
@@ -148,7 +147,7 @@ export default function SettingsPage() {
           leading={
             <Avatar alt={user?.name ?? t("profile.name")} className="size-10">
               {user?.avatar_url ? (
-                <AvatarImage source={authImageSource(user.avatar_url)} />
+                <AvatarImage source={{ uri: user.avatar_url }} />
               ) : null}
               <AvatarFallback>
                 <Text className="text-sm font-semibold text-muted-foreground">

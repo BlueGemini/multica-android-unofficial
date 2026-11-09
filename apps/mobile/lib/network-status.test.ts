@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 vi.mock("@react-native-community/netinfo", () => ({
-  default: { addEventListener: vi.fn(() => () => {}) },
+  default: { configure: vi.fn(), addEventListener: vi.fn(() => () => {}) },
 }));
 
 import { isNetworkOffline, runWhileOnline, useNetworkStore } from "./network-status";
@@ -11,8 +11,8 @@ describe("isNetworkOffline", () => {
   it("is offline when not connected", () => {
     expect(isNetworkOffline({ isConnected: false, isInternetReachable: null })).toBe(true);
   });
-  it("is offline when connected but internet is known unreachable", () => {
-    expect(isNetworkOffline({ isConnected: true, isInternetReachable: false })).toBe(true);
+  it("keeps the tailnet usable without public internet reachability", () => {
+    expect(isNetworkOffline({ isConnected: true, isInternetReachable: false })).toBe(false);
   });
   it("is online while reachability is still unknown", () => {
     expect(isNetworkOffline({ isConnected: true, isInternetReachable: null })).toBe(false);

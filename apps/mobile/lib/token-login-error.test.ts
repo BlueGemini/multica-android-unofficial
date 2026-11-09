@@ -9,14 +9,7 @@ import { tokenLoginErrorKey } from "./auth-error";
 
 const named = (name: string, message = "x") => Object.assign(new Error(message), { name });
 
-// a Cloudflare Access block is not
-// "the server rejected this token".
 describe("tokenLoginErrorKey", () => {
-  it("names a Cloudflare Access block", () => {
-    expect(tokenLoginErrorKey(named("AccessBlockedError", "Cloudflare Access blocked the request"))).toBe(
-      "server.access_blocked",
-    );
-  });
   it("treats the client timeout (ApiError status 0, data/api.ts) as network", () => {
     const timeout = Object.assign(new Error("Request timed out after 15000ms"), { name: "ApiError", status: 0 });
     expect(tokenLoginErrorKey(timeout)).toBe("verify.network");
@@ -43,8 +36,8 @@ describe("J1 strings", () => {
       const a = auth as unknown as { verify: Record<string, string>; server: Record<string, string> };
       const i = issues as unknown as { picker: Record<string, string> };
       for (const k of ["paste", "paste_a11y", "paste_none"]) expect(a.verify[k], `${lang}:verify.${k}`).toBeTypeOf("string");
-      expect(a.server.access_blocked).toBeTypeOf("string");
-      expect(a.server.secret_paste_hint).toBeTypeOf("string");
+      expect(a.server.error_url_tailnet).toBeTypeOf("string");
+      expect(a.server.paste_ok).toBeTypeOf("string");
       expect(i.picker.no_labels_hint).toBeTypeOf("string");
     });
   }

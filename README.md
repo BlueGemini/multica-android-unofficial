@@ -17,6 +17,14 @@
 
 The app is a fork of the official Expo / React Native mobile client (`apps/mobile`), which upstream ships for iOS only. This fork adds an Android build, Android-specific fixes and mobile features for task management with AI agents while you are away from your desk. The app has no backend of its own and contains no server address; you enter your server URL on first start.
 
+## Tailscale fork
+
+Connect the Android phone to the same tailnet as Multica. Enter the server's full HTTPS MagicDNS address, such as `https://multica.your-tailnet.ts.net:8443`, and tap **Test connection**. The app saves the address after `GET /health` returns a successful Multica response.
+
+The proxy must serve the API and upgrade `/ws` on the same HTTPS address and port. The app rejects redirects on these connections. Use a tailnet-only listener and keep the endpoint restricted with your Tailscale access policy.
+
+Build the fork from source with `apps/mobile/scripts/android-build.sh debug --archs arm64-v8a`. It installs alongside the original app as **Multica (Unofficial Tailnet)**. Upstream release APKs do not contain these changes.
+
 ## Screenshots
 
 | Board | Issue detail | Issue chat | My Issues | Dark mode |
@@ -76,8 +84,7 @@ The app is a fork of the official Expo / React Native mobile client (`apps/mobil
 
 **Connecting and security**
 - Server URL entered at runtime with a connection test; nothing server-specific is built into the APK.
-- Optional **Cloudflare Access** service-token mode for servers behind Cloudflare Zero Trust (headers on REST, uploads, WebSocket and images of your own origin only).
-- **Local / VPN** mode for a direct connection; trusts CA certificates installed by the user on the device, so a private CA works without rebuilding the app.
+- Direct HTTPS connection over Tailscale. The app uses the exact hostname and port entered at setup.
 - Secrets live in the Android Keystore (`expo-secure-store`), secret screens are protected against screenshots (`FLAG_SECURE`), the clipboard is cleared after pasting a secret, and logs redact tokens.
 - No camera, microphone, storage or overlay permissions. Images use the system Photo Picker.
 
@@ -105,15 +112,11 @@ Updates install over the previous version as long as they are signed with the sa
 
 ## Connecting to your server
 
-1. On first start, choose the connection mode:
-   - **Local / VPN** – a direct connection to your server URL, e.g. `https://multica.example.com`. Use this for any server you can reach directly, on your LAN, over a VPN or on the internet.
-   - **Cloudflare Access** – your server URL plus the client ID and secret of a Cloudflare Access *service token* (Zero Trust → Access → Service Auth → Service Tokens) that a *Service Auth* policy on your Access application allows.
-2. Tap **Test connection**. The app calls `GET /health` and tells you whether the server answered, Access blocked the request, or the host is unreachable.
-3. Sign in with the e-mail code, as in the web app.
+1. Connect the phone to Tailscale and enter the full HTTPS MagicDNS address of your Multica server, including a custom port when applicable.
+2. Tap **Test connection**, then **Save and continue**. Setup checks `GET /health`.
+3. Sign in with the e-mail code and select a workspace. Realtime features use `/ws` through the same HTTPS endpoint.
 
-Using a private CA: install the CA certificate on the phone (Settings → Security → Encryption & credentials → Install a certificate → CA certificate). Plain HTTP is not allowed.
-
-You can change or forget the server later under **Settings → Server connection**. Changing the server signs you out.
+You can change or forget the server in **Settings → Server connection**. Changing the address signs you out on this phone.
 
 ## FAQ
 
@@ -124,7 +127,7 @@ No. It is an independent, community-made Android port of the official mobile cli
 Not in the OSI sense. The app is source-available (Multica License, Apache-2.0-based): the complete source is in this repository under the same license as upstream Multica – the Apache License 2.0 together with additional conditions. For example, Multica's name, logo and attribution must stay unchanged in the app, and running a Multica-based hosted service for third parties needs a commercial license from Index Labs. Within those terms you can read, build, modify and contribute to the code. See [License](#license).
 
 **Does it work with self-hosted Multica?**
-Yes – that is what it was built and tested with (Multica v0.6.1). Enter your server URL on first start. Servers behind Cloudflare Access and servers with a private CA are supported as well.
+Yes – that is what it was built and tested with (Multica v0.6.1). Enter your server URL on first start. Connect the phone to the tailnet and provide the server's HTTPS MagicDNS address.
 
 **Does it work with Multica Cloud?**
 It should, because the server URL is not built in, but the cloud has not been tested. Feedback is welcome.
@@ -136,7 +139,7 @@ This is an early, unofficial release made by volunteers. Distributing the APK th
 Android 7.0 (API 24) or newer on ARM devices (`arm64-v8a`, `armeabi-v7a`), phones and tablets, portrait and landscape. x86 / x86_64 devices and emulators are not supported by the release APK; for an x86_64 emulator, build a debug APK from source. Day-to-day development and testing used Android 16 emulators; real-device coverage is limited.
 
 **Is my data sent anywhere else?**
-No. The app talks only to the Multica server you configure (plus Cloudflare, if you use the Cloudflare Access mode in front of your own server). There is no Firebase, no Google Play Services, no analytics or tracking, and no backend of this project. Notifications come from a WebSocket connection to your own server.
+Login, API calls and notifications use your configured Multica server. Links and media supplied by workspace content can point to other destinations. The app has no project-operated backend, analytics or push provider.
 
 **How can I help or report bugs?**
 Open an issue in this repository with your Android version, device, app version, Multica server version and the steps to reproduce. Please check [KNOWN_ISSUES.md](KNOWN_ISSUES.md) first. Pull requests are welcome (see [Build from source](#build-from-source)). Never post tokens, service-token secrets or server addresses you want to keep private.
@@ -184,7 +187,7 @@ Projects can be listed, created, edited and deleted, with their properties, reso
 The app runs in portrait and landscape. From 600 dp window width – tablets, foldables and large phones in landscape – the bottom tabs become a navigation rail on the left, issues open in two columns (details on the left, chat or activity on the right) and lists and forms keep a comfortable reading width instead of stretching across the screen. Phones keep the familiar layout. It uses Material bottom sheets, the Android date picker and keyboard-aware screens. After Android recreates the activity, for example when you change the font or display size, the app returns to the screen you had open, including the back stack. Layouts are checked at 200 % font size, icons and controls have TalkBack labels, and touch targets are at least 48 dp. The interface is available in English, German and Simplified Chinese.
 
 **Connection and security**
-The server URL is entered at runtime and checked with a connection test; nothing server-specific is built into the APK. Servers behind Cloudflare Zero Trust are supported through a Cloudflare Access service token, whose headers are sent only to your own origin. The *Local / VPN* mode trusts CA certificates installed by the user, so a private CA works without rebuilding the app. Secrets are stored in the Android Keystore, secret screens block screenshots, the clipboard can be cleared after pasting a secret, and logs redact tokens. The app requests no camera, microphone, storage or overlay permission; images are picked with the system Photo Picker.
+The server URL is entered at runtime and checked with a connection test; nothing server-specific is built into the APK. The Android fork uses an HTTPS MagicDNS address for its Multica connection. Secrets are stored in the Android Keystore, secret screens block screenshots, the clipboard can be cleared after pasting a secret, and logs redact tokens. The app requests no camera, microphone, storage or overlay permission; images are picked with the system Photo Picker.
 
 </details>
 
@@ -200,7 +203,7 @@ Multica lets AI coding agents pick up issues, comment and report results. With t
 Because notifications come from a WebSocket connection to your own server, they also work on devices without Google Play Services – for example de-googled Android ROMs – and no notification content passes through a third-party push service. This is useful for privacy-conscious users and for teams that do not want issue titles or comments to leave their own infrastructure.
 
 **Self-hosted teams**
-Teams that run Multica on their own server, on a LAN, behind a VPN or behind Cloudflare Access can connect without a custom build: enter the URL, optionally a Cloudflare Access service token, or install a private CA certificate on the phone. Nothing about the server is built into the app, so the same APK works for every team.
+Teams running Multica on a tailnet enter their own HTTPS MagicDNS address in the app.
 
 **Triage on the go**
 The inbox filters, saved views, multi-select with batch actions and the Kanban board make it quick to go through new notifications, move issues to the right status, reassign work or set a due date – for example on the way to work or between meetings.
@@ -242,11 +245,11 @@ The official upstream mobile client is built for iOS only. This app is that clie
 **"Test connection" fails**
 The connection test calls `GET /health` on your server and tells you which of three things happened:
 - *Host unreachable* – check the URL (it must start with `https://`; plain HTTP is not allowed), your VPN or network, and that the server is running.
-- *Blocked by Cloudflare Access* – the service token is missing or wrong, or no *Service Auth* policy on your Access application allows it. Paste the client ID and secret again; a copied header block fills both fields.
+- *Redirected* – enter the final HTTPS address that serves the Multica API directly.
 - *Server answered* – the connection works; continue with the sign-in.
 
 **Certificate error with a private CA**
-Install the CA certificate on the phone (Settings → Security → Encryption & credentials → Install a certificate → CA certificate) and use the *Local / VPN* mode. The app trusts user-installed CAs in this mode.
+Install the CA certificate on the phone (Settings → Security → Encryption & credentials → Install a certificate → CA certificate) when your tailnet server uses a certificate issued by a private CA.
 
 **The APK does not install**
 - Allow installs from your browser or file manager (Settings → Apps → Special app access → Install unknown apps).
@@ -289,7 +292,7 @@ Connect the app to your Multica server. You then see agent results and questions
 Multica can run AI coding agents such as Claude Code on its runtimes. Whatever agents your Multica server runs, this app shows their issues, comments, runs and chat sessions on Android. The app itself does not run agents; it is a client for your Multica server.
 
 **Is there a self-hosted issue tracker Android app for Multica?**
-Yes. The app was built and tested against a self-hosted Multica server (v0.6.1). It contains no server address; you enter your own URL, and it supports servers on a LAN, behind a VPN, behind Cloudflare Access or with a private CA.
+Yes. The app was built and tested against a self-hosted Multica server (v0.6.1). It contains no server address; you enter your own URL, and the Android fork connects through HTTPS on Tailscale.
 
 **Does it need Google Play Services or Firebase?**
 No. Notifications come from a WebSocket connection to your own server.
@@ -316,7 +319,7 @@ Settings and management closer to the web app, the remaining [known issues](KNOW
 Requirements: Node.js 22, pnpm (version from `packageManager` in `package.json`, via `corepack enable`), JDK 17, Android SDK with platform 36, build-tools 36 and NDK 27.
 
 ```bash
-git clone https://github.com/1270011/multica-android-unofficial.git
+git clone -b feature/tailscale-connectivity https://github.com/BlueGemini/multica-android-unofficial.git
 cd multica-android-unofficial
 pnpm install --frozen-lockfile
 

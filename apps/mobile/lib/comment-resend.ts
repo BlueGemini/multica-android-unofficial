@@ -46,7 +46,6 @@ export function isTransientSendError(err: unknown): boolean {
   if (err instanceof Error && typeof status === "number") {
     // Cloudflare Access blocks keep their status (often 200/302/403) and do
     // not heal by waiting.
-    if (err.name === "AccessBlockedError") return false;
     // 0 = our own fetch timeout (data/api.ts).
     return status === 0 || status === 408 || status === 429 || status >= 500;
   }

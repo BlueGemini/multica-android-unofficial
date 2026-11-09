@@ -8,7 +8,6 @@ vi.mock("react-native", () => ({ useWindowDimensions: () => ({ width: 0, height:
 // See api.test.ts: stub the native-backed stores the client reads per request.
 vi.mock("@/data/server-config-store", () => ({
   getServerBaseUrl: () => "https://api.example.test",
-  getCfAccessHeaders: () => ({}),
 }));
 vi.mock("@/lib/client-os", () => ({ CLIENT_OS: "android" }));
 vi.mock("@/data/workspace-store", () => ({ getCurrentSlug: () => "ws" }));

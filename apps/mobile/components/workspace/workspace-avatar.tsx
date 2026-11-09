@@ -22,7 +22,6 @@ import { View } from "react-native";
 import { Image as ExpoImage } from "expo-image";
 import { Text } from "@/components/ui/text";
 import { resolveAttachmentUrl } from "@/lib/attachment-url";
-import { authImageSource } from "@/lib/image-source";
 import { cn } from "@/lib/utils";
 
 export function WorkspaceAvatar({
@@ -46,7 +45,7 @@ export function WorkspaceAvatar({
         style={{ width: size, height: size, borderRadius }}
       >
         <ExpoImage
-          source={authImageSource(resolved)}
+          source={{ uri: resolved }}
           contentFit="cover"
           accessibilityLabel={name}
           style={{ width: "100%", height: "100%" }}

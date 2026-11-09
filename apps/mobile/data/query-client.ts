@@ -49,10 +49,8 @@ focusManager.setEventListener((handleFocus) => {
 // to NetInfo to force-reconnect the WS — both flows are driven by the
 // same signal so client state and server state catch up together.
 //
-// Same rule as the offline banner (lib/network-status.ts): a network that
-// is connected but known to have no internet (Android not yet VALIDATED)
-// still counts as offline, so a queued comment does not burn its first
-// attempt on a link that cannot carry it.
+// Share the offline banner's link status so loss of public Internet does
+// not pause requests to a reachable tailnet server.
 onlineManager.setEventListener((setOnline) => {
   return NetInfo.addEventListener((state) => {
     setOnline(!isNetworkOffline(state));

@@ -9,13 +9,14 @@
  * forever on a paused fetch.
  *
  * `isNetworkOffline(state)` is the single place that decides what "offline"
- * means: not connected, or connected to a network that is known to have no
- * internet reachability (captive portal, VPN without route). `null`
- * reachability (NetInfo still probing) counts as online so the banner never
- * flashes during a cold start.
+ * means: no active link. A tailnet server can be reachable even when the
+ * network cannot reach the public internet.
  */
 import { create } from "zustand";
 import NetInfo, { type NetInfoState } from "@react-native-community/netinfo";
+
+// Avoid NetInfo's public reachability probe. The setup screen checks Multica directly.
+NetInfo.configure({ reachabilityShouldRun: () => false });
 
 export interface NetworkStatus {
   /** `true` until NetInfo reports otherwise — never flash offline on boot. */
@@ -25,8 +26,7 @@ export interface NetworkStatus {
 export function isNetworkOffline(
   state: Pick<NetInfoState, "isConnected" | "isInternetReachable">,
 ): boolean {
-  if (state.isConnected === false) return true;
-  return state.isInternetReachable === false;
+  return state.isConnected === false;
 }
 
 export const useNetworkStore = create<NetworkStatus>(() => ({ online: true }));

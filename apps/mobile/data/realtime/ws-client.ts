@@ -63,14 +63,6 @@ export interface WSClientOptions {
   clientVersion?: string;
   /** `client_os` query param (`ios` / `android`). Defaults to `ios`. */
   clientOs?: string;
-  /**
-   * Extra HTTP headers for the upgrade request. React Native's WebSocket
-   * accepts them as the third constructor argument; browsers do not, which
-   * is why upstream passes everything as query params. Used for the
-   * Cloudflare Access service token — Access inspects the upgrade request
-   * like any other HTTP request.
-   */
-  headers?: Record<string, string>;
   logger?: Logger;
 }
 
@@ -221,26 +213,19 @@ export class WSClient {
   // ── internal ────────────────────────────────────────────────────────
 
   private openSocket() {
-    const url = new URL(this.opts.url);
-    url.searchParams.set("workspace_slug", this.opts.workspaceSlug);
-    url.searchParams.set("client_platform", "mobile");
-    url.searchParams.set("client_os", this.opts.clientOs ?? "ios");
+    // The React Native URL polyfill appends a slash to bare paths. Keep /ws exact.
+    const params = new URLSearchParams();
+    params.set("workspace_slug", this.opts.workspaceSlug);
+    params.set("client_platform", "mobile");
+    params.set("client_os", this.opts.clientOs ?? "ios");
     if (this.opts.clientVersion) {
-      url.searchParams.set("client_version", this.opts.clientVersion);
+      params.set("client_version", this.opts.clientVersion);
     }
 
-    const headers = this.opts.headers;
-    const ws =
-      headers && Object.keys(headers).length > 0
-        ? // RN-only signature: (url, protocols, { headers }).
-          new (WebSocket as unknown as new (
-            u: string,
-            p: null,
-            o: { headers: Record<string, string> },
-          ) => WebSocket)(url.toString(), null, { headers })
-        : new WebSocket(url.toString());
+    const url = `${this.opts.url}?${params.toString()}`;
+    const ws = new WebSocket(url);
     this.ws = ws;
-    this.logger.info("[ws] dialing", url.toString().replace(/token=[^&]*/, "token=…"));
+    this.logger.info("[ws] dialing", url.replace(/token=[^&]*/, "token=…"));
 
     ws.onopen = () => {
       this.logger.info("[ws] socket open, sending auth frame");

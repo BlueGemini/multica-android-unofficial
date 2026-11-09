@@ -28,7 +28,6 @@ import { Separator } from "@/components/ui/separator";
 import { useAuthStore } from "@/data/auth-store";
 import { api } from "@/data/api";
 import type { FileAsset } from "@/data/api";
-import { authImageSource } from "@/lib/image-source";
 import { useT } from "@/lib/i18n";
 import { READING_WIDTH_STYLE } from "@/components/ui/reading-width";
 
@@ -196,7 +195,7 @@ export default function ProfileSettingsScreen() {
         <Pressable onPress={handleAvatarPick} disabled={uploading}>
           <Avatar alt={user?.name ?? t("profile.name")} className="size-24">
             {user?.avatar_url ? (
-              <AvatarImage source={authImageSource(user.avatar_url)} />
+              <AvatarImage source={{ uri: user.avatar_url }} />
             ) : null}
             <AvatarFallback>
               <Text className="text-2xl font-semibold text-muted-foreground">

@@ -95,7 +95,7 @@ export default function Login() {
           </Button>
 
           {/* Which server this phone talks to, with a way back to the setup
-              screen (mode / URL / Cloudflare service token). */}
+              screen to check or change the tailnet URL. */}
           <View className="items-center gap-1">
             <Text className="text-xs text-muted-foreground text-center" numberOfLines={1}>
               {t("server.current", { server: serverLabel(server) })}

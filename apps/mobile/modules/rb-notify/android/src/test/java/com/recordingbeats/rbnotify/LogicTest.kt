@@ -125,11 +125,13 @@ class WsFrameTest {
 
 class CredentialsJsonTest {
   @Test
-  fun roundTripsAndChecksHost() {
-    val c = Credentials("https://multica.example:8443", "tok", "id.access", "sec")
+  fun roundTripsWithoutLegacyAccessSecrets() {
+    val c = Credentials("https://multica.example.ts.net:8443", "tok")
     val back = Credentials.fromJson(c.toJson())
     assertEquals(c, back)
-    assertEquals("multica.example", c.host())
+    assertEquals(c, Credentials.fromJson(
+      """{"baseUrl":"https://multica.example.ts.net:8443","token":"tok","cfClientSecret":"old"}""",
+    ))
     assertNull(Credentials.fromJson("""{"baseUrl":"","token":"x"}"""))
   }
 }

@@ -29,7 +29,6 @@ vi.mock("@/data/secure-storage", () => ({ getToken: async () => "token" }));
 vi.mock("@/data/api", () => ({ api: { getToken: () => "token" } }));
 vi.mock("@/data/server-config-store", () => ({
   getServerBaseUrl: () => "https://example.test",
-  getCfAccessHeaders: () => ({}),
 }));
 vi.mock("@/lib/client-os", () => ({ CLIENT_OS: "android" }));
 

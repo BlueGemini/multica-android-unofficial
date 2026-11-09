@@ -14,7 +14,7 @@ import okhttp3.OkHttpClient
  * Keeps JS `fetch` alive across a network change (smoke 6b).
  *
  * React Native's NetworkingModule builds its own OkHttpClient with no read
- * timeout and no HTTP/2 ping. The Multica server (Cloudflare and local) speaks
+ * timeout and no HTTP/2 ping. The Multica server can speak
  * HTTP/2, so every request shares ONE pooled connection. After Wi-Fi/mobile
  * off → on, that connection is bound to the gone network: it never errors,
  * every new request is multiplexed onto it and hangs until the JS 30 s abort,
@@ -54,6 +54,7 @@ object HttpClientGuard {
     OkHttpClientProvider.setOkHttpClientFactory(
       OkHttpClientFactory {
         OkHttpClientProvider.createClientBuilder(app)
+          .requireDirectEndpoint()
           .pingInterval(PING_INTERVAL_S, TimeUnit.SECONDS)
           .build()
           .also { register(it) }
@@ -126,3 +127,7 @@ internal class NetworkChangeTracker {
     return true
   }
 }
+
+/** The WebSocket sends its session token to the peer after the upgrade. */
+internal fun OkHttpClient.Builder.requireDirectEndpoint(): OkHttpClient.Builder =
+  followRedirects(false).followSslRedirects(false)

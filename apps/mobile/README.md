@@ -91,16 +91,9 @@ Android only installs an update over an existing app if it is signed with the sa
 
 ## Server setup in the app
 
-Nothing server-specific is built into the APK. On first start the app asks for the server connection; you can change it later under **Settings → Server connection** (this signs you out).
+Connect the phone to Tailscale and enter the server's full HTTPS MagicDNS hostname with its port, for example `https://multica.your-tailnet.ts.net:8443`. **Test connection** probes `/health` without credentials. Saving requires a successful response. Login and uploads use the same HTTPS endpoint, and realtime and background notifications use its `/ws` endpoint. The proxy must serve these endpoints directly.
 
-- **Local / VPN** – a direct connection to the server URL, e.g. `https://multica.example.com`. Works for any server you can reach directly, on a LAN, over a VPN or on the internet. The app trusts CA certificates installed by the user, so a server with a private CA works without rebuilding.
-- **Cloudflare Access** – the server URL plus the Client ID and Client Secret of a Cloudflare Access service token for a server behind Cloudflare Zero Trust.
-
-**Test connection** calls `GET /health` on the server. Then sign in with the e-mail code.
-
-The URL must use `https://`: the app's network security config disallows cleartext HTTP.
-
-Optional at build time: `EXPO_PUBLIC_DEFAULT_SERVER_URL` prefills the URL field in Cloudflare Access mode. The server address is never taken from `EXPO_PUBLIC_API_URL`; the committed `apps/mobile/.env*` files come from upstream and do not choose a server for this app.
+The tailnet URL is entered on the phone and stored in SecureStore. This Android build uses the application ID `net.recordingbeats.multica.unofficial.tailnet`.
 
 ## Project layout
 

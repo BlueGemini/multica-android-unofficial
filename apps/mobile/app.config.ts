@@ -21,7 +21,7 @@ export default ({ config }: ConfigContext): ExpoConfig => {
     // app. Logo, the name "Multica" and the attribution notices in the UI
     // stay unchanged (Multica License, see LICENSE and NOTICE).
     name: isProd
-      ? "Multica (Unofficial)"
+      ? "Multica (Unofficial Tailnet)"
       : isStaging
         ? "Multica (Unofficial Staging)"
         : "Multica (Unofficial Dev)",
@@ -36,7 +36,7 @@ export default ({ config }: ConfigContext): ExpoConfig => {
     // recreate it; layouts react through lib/breakpoints.ts.
     orientation: "default",
     userInterfaceStyle: "automatic",
-    scheme: "multica",
+    scheme: "multica-tailnet",
     // 1024x1024 full-bleed, no-alpha source that belongs to mobile alone. Do
     // not point this back at the upstream desktop icon: that one is padded
     // for macOS, and iOS would mask it a second time, which
@@ -76,7 +76,7 @@ export default ({ config }: ConfigContext): ExpoConfig => {
       // One package id for every variant: the Android build ships a
       // single sideloaded APK, so there is no dev/staging/prod side-by-side
       // install to keep apart (that is what the iOS suffixes above do).
-      package: "net.recordingbeats.multica.unofficial",
+      package: "net.recordingbeats.multica.unofficial.tailnet",
       versionCode: Number.parseInt(process.env.ANDROID_VERSION_CODE ?? "3", 10),
       adaptiveIcon: {
         foregroundImage: "./assets/icon.png",

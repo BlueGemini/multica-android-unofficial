@@ -46,7 +46,7 @@ class OperatorConnectionService : Service(), InboxSocket.Listener {
   private var socket: InboxSocket? = null
   /** Slugs the server refused ("not a member") since the service started. */
   private val lostSlugs = HashSet<String>()
-  /** Last upgrade answered 403 (Cloudflare Access?), shown until connected. */
+  /** Last upgrade answered 403, shown until connected. */
   @Volatile private var refused = false
   private val seen = HashMap<String, SeenIds>()
   /** Title filter push mute: issue titles seen, compiled patterns. */
@@ -126,7 +126,7 @@ class OperatorConnectionService : Service(), InboxSocket.Listener {
     }
     val current = socket
     if (current == null) {
-      socket = InboxSocket(OkHttpTransport(store), HandlerScheduler(handler), ::socketCreds, this)
+      socket = InboxSocket(OkHttpTransport(), HandlerScheduler(handler), ::socketCreds, this)
         .also { it.start(via.slug) }
     } else if (all.none { it.slug == current.slug }) {
       // The workspace the socket was opened with is gone from the list.
@@ -381,12 +381,11 @@ class OperatorConnectionService : Service(), InboxSocket.Listener {
   }
 }
 
-/** OkHttp behind InboxSocket.Transport; CF headers as for every request. */
-private class OkHttpTransport(private val store: CredentialStore) : InboxSocket.Transport {
+/** OkHttp transport shared with the background REST client. */
+private class OkHttpTransport : InboxSocket.Transport {
   override fun connect(url: String, events: InboxSocket.Events): InboxSocket.Connection {
-    val b = Request.Builder().url(url)
-    store.load()?.let { InboxApi.applyCfHeaders(b, it, it.baseUrl) }
-    val ws = InboxApi.client.newWebSocket(b.build(), object : WebSocketListener() {
+    val request = Request.Builder().url(url).build()
+    val ws = InboxApi.client.newWebSocket(request, object : WebSocketListener() {
       override fun onOpen(webSocket: WebSocket, response: Response) = events.onOpen()
       override fun onMessage(webSocket: WebSocket, text: String) = events.onMessage(text)
       override fun onClosed(webSocket: WebSocket, code: Int, reason: String) = events.onClosed()
