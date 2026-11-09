@@ -41,7 +41,8 @@ Build the fork from source with `apps/mobile/scripts/android-build.sh debug --ar
 - "Assigned to me" notification category with the issue key in the headline.
 
 **Issues and Kanban board**
-- **My Issues** with the tabs Assigned, Created and All, list grouped by status, and a **Kanban board** (status columns, status change with undo, drag and drop between columns in landscape and on tablets).
+- **Work** shows tasks across the current workspace, grouped by status. Search and select a project in the sidebar on wide screens, or open the project picker on a phone. Completed tasks are collapsed by default.
+- **My Issues** under More, with the tabs Assigned, Created and All, list grouped by status, and a **Kanban board** (status columns, status change with undo, drag and drop between columns in landscape and on tablets).
 - Filters for status, priority, project, label, due date, assignee and creator, remembered per list and workspace; server-side sorting, including manual board order.
 - **Title filter**: a regular expression hides matching issues in the lists and on the board; push notifications for them can be muted.
 - **Saved views**: apply, save, rename, share, delete and pin.
@@ -160,7 +161,7 @@ The inbox is the starting point of the app. It shows every notification type the
 Notifications do not use Firebase Cloud Messaging or Google Play Services. Instead, an optional Android foreground service keeps a single WebSocket connection to your own server, shared by all workspaces you enable. The app then shows local notifications with their own notification channels, a summary notification and a "mark as read" action. Each workspace has its own switch, and the service stays off until you turn it on. Its state survives process restarts and is deleted when you sign out.
 
 **Issues, lists and the Kanban board**
-*My Issues* has three tabs: issues assigned to you, issues you created, and all issues of the workspace, grouped by status. Every list can also be shown as a **Kanban board** with one column per status. You change an issue's status from the board (with undo), and in landscape or on a tablet you can drag cards between columns. Filters for status, priority, project, label, due date, assignee and creator are remembered per list and per workspace, the filter button shows how many filters are active, and "Reset filters" clears them. Lists are sorted on the server, including the manual order of the board. A filter and sort combination can be kept as a **saved view**, which you can rename, share, delete and pin to the view bar. A long press starts **multi-select** in the list and on the board, so you can change status, priority or assignee of several issues at once or delete them after a confirmation. Lists load all pages, so large workspaces are not cut off.
+*My Issues* in the More menu has three tabs: issues assigned to you, issues you created, and all issues of the workspace, grouped by status. Every list can also be shown as a **Kanban board** with one column per status. You change an issue's status from the board (with undo), and in landscape or on a tablet you can drag cards between columns. Filters for status, priority, project, label, due date, assignee and creator are remembered per list and per workspace, the filter button shows how many filters are active, and "Reset filters" clears them. Lists are sorted on the server, including the manual order of the board. A filter and sort combination can be kept as a **saved view**, which you can rename, share, delete and pin to the view bar. A long press starts **multi-select** in the list and on the board, so you can change status, priority or assignee of several issues at once or delete them after a confirmation. The Work tab loads all pages of workspace tasks.
 
 **Issue detail**
 You can edit title and description; if someone else changed them in the meantime, the app shows a notice instead of silently overwriting their edit. Status, priority, assignee, labels, project, start and due date, stage and parent can be set directly. Sub-issues are grouped by stage with a progress indicator, an issue can be marked as a duplicate, and custom properties (text, number, select, multi-select, date, checkbox, URL, member) are supported. You can subscribe or unsubscribe, see the subscriber list, pin the issue, copy its link or open it in the web app.
@@ -319,7 +320,7 @@ Settings and management closer to the web app, the remaining [known issues](KNOW
 Requirements: Node.js 22, pnpm (version from `packageManager` in `package.json`, via `corepack enable`), JDK 17, Android SDK with platform 36, build-tools 36 and NDK 27.
 
 ```bash
-git clone -b feature/tailscale-connectivity https://github.com/BlueGemini/multica-android-unofficial.git
+git clone -b feature/team-work-board https://github.com/BlueGemini/multica-android-unofficial.git
 cd multica-android-unofficial
 pnpm install --frozen-lockfile
 

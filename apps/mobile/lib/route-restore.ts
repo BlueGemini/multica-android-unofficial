@@ -28,11 +28,11 @@ export const MARKER_FILE = "restore-route-marker";
 
 /**
  * Routes that became redirects: restore their target directly, so the
- * redirect screen is never pushed onto the stack. `more/issues` is the tab
- * "All" of My Issues since 2.0.
+ * redirect screen is never pushed onto the stack. The workspace-wide
+ * issues link now lands on the Work tab.
  */
 const LEGACY_ROUTES: [RegExp, string][] = [
-  [/^\/([^/?#]+)\/more\/issues\/?$/, "/$1/my-issues?tab=all"],
+  [/^\/([^/?#]+)\/more\/issues\/?$/, "/$1/work"],
 ];
 
 export function resolveRestorePath(pathname: string | null | undefined): string | null {
@@ -89,7 +89,7 @@ export interface RestoreNavigator {
 }
 
 /** Tab roots of a workspace; restoring one of them needs no extra screen. */
-const TAB_ROOTS = ["inbox", "my-issues", "chat", "more"];
+const TAB_ROOTS = ["inbox", "work", "my-issues", "chat", "more"];
 
 /** Gap between "tab" and "push the restored screen", so the tab stack exists. */
 export const RESTORE_PUSH_DELAY_MS = 250;

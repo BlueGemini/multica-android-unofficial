@@ -1,4 +1,22 @@
 {
+  "work": {
+    "title": "Teamaufgaben",
+    "all_projects": "Alle Projekte",
+    "choose_project": "Projekte filtern, aktuelle Auswahl: {{project}}",
+    "clear_search": "Projektsuche leeren",
+    "projects_failed": "Projekte konnten nicht geladen werden.",
+    "issues_failed": "Aufgaben konnten nicht geladen werden.",
+    "group_count": "{{label}}, {{count}}",
+    "groups": {
+      "backlog": "Planung",
+      "todo": "Offen",
+      "in_progress": "In Arbeit",
+      "in_review": "In Prüfung",
+      "blocked": "Blockiert",
+      "done": "Erledigt",
+      "cancelled": "Abgebrochen"
+    }
+  },
   "tabs": {
     "all": "Alle",
     "created": "Erstellt",

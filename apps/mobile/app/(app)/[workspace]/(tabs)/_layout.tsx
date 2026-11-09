@@ -133,10 +133,10 @@ export default memo(function TabsLayout() {
           }}
         />
         <Tabs.Screen
-          name="my-issues"
+          name="work"
           options={{
-            title: t("tabs.my_issues"),
-            tabBarAccessibilityLabel: t("tabs.my_issues"),
+            title: t("tabs.work"),
+            tabBarAccessibilityLabel: t("tabs.work"),
             tabBarIcon: ({ color, size, focused }) => (
               <SymbolIcon name={focused ? "checklist" : "checklist.unchecked"} size={size} color={color} />
             ),
@@ -154,6 +154,7 @@ export default memo(function TabsLayout() {
             ),
           }}
         />
+        <Tabs.Screen name="my-issues" options={{ href: null }} />
         <Tabs.Screen
           name="more"
           options={{

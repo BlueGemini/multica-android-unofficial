@@ -1,4 +1,22 @@
 {
+  "work": {
+    "title": "Team work",
+    "all_projects": "All projects",
+    "choose_project": "Filter projects, current selection: {{project}}",
+    "clear_search": "Clear project search",
+    "projects_failed": "Could not load projects.",
+    "issues_failed": "Could not load workspace tasks.",
+    "group_count": "{{label}}, {{count}}",
+    "groups": {
+      "backlog": "Planning",
+      "todo": "To do",
+      "in_progress": "In progress",
+      "in_review": "In review",
+      "blocked": "Blocked",
+      "done": "Completed",
+      "cancelled": "Cancelled"
+    }
+  },
   "tabs": {
     "all": "All",
     "created": "Created",

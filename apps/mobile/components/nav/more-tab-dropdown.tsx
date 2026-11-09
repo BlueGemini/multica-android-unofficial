@@ -68,6 +68,7 @@ import { moreMenuPlacement, type NavMode } from "@/lib/nav-layout";
 
 interface NavItem {
   labelKey:
+    | "tabs.my_issues"
     | "more_menu.pinned"
     | "more_menu.projects"
     | "more_menu.agents"
@@ -81,8 +82,7 @@ interface NavItem {
 
 const NAV_ITEMS: NavItem[] = [
   { labelKey: "more_menu.pinned", icon: "pin", path: "/more/pins" },
-  // No "Issues" entry since 2.0: the whole workspace is the tab
-  // "All" of My Issues; `more/issues` only redirects there.
+  { labelKey: "tabs.my_issues", icon: "checklist", path: "/my-issues" },
   { labelKey: "more_menu.projects", icon: "square.stack", path: "/more/projects" },
 ];
 

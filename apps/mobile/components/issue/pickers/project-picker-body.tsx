@@ -20,6 +20,7 @@ import { useWorkspaceStore } from "@/data/workspace-store";
 import { useScrollToTopOnChange } from "@/lib/use-scroll-to-top-on-change";
 import { THEME } from "@/lib/theme";
 import { useT } from "@/lib/i18n";
+import { cn } from "@/lib/utils";
 
 type Row = { kind: "none" } | { kind: "project"; project: Project };
 
@@ -27,9 +28,11 @@ interface Props {
   value: Project | null;
   query: string;
   onChange: (next: Project | null) => void;
+  /** A filter can use the empty selection for all projects. */
+  emptySelectionLabel?: string;
 }
 
-export function ProjectPickerBody({ value, query, onChange }: Props) {
+export function ProjectPickerBody({ value, query, onChange, emptySelectionLabel }: Props) {
   const wsId = useWorkspaceStore((s) => s.currentWorkspaceId);
   const { t } = useT("issues");
   const { data: projects = [] } = useQuery(projectListOptions(wsId));
@@ -83,11 +86,16 @@ export function ProjectPickerBody({ value, query, onChange }: Props) {
           onPress={() =>
             item.kind === "none" ? onChange(null) : onChange(item.project)
           }
-          className="flex-row items-center gap-3 px-4 py-3 active:bg-secondary"
+          accessibilityRole="button"
+          accessibilityState={{ selected: isSelected(item) }}
+          className={cn(
+            "flex-row items-center gap-3 px-4 py-3 active:bg-secondary",
+            emptySelectionLabel && isSelected(item) && "bg-secondary",
+          )}
         >
           {item.kind === "none" ? (
             <Ionicons
-              name="close-circle-outline"
+              name={emptySelectionLabel ? "layers-outline" : "close-circle-outline"}
               size={28}
               color={MOBILE_PLACEHOLDER_COLOR}
             />
@@ -99,7 +107,7 @@ export function ProjectPickerBody({ value, query, onChange }: Props) {
             numberOfLines={1}
           >
             {item.kind === "none"
-              ? t("picker.no_project")
+              ? emptySelectionLabel ?? t("picker.no_project")
               : item.project.title}
           </Text>
           {isSelected(item) ? (

@@ -1,4 +1,22 @@
 {
+  "work": {
+    "title": "团队工作看板",
+    "all_projects": "全部项目",
+    "choose_project": "筛选项目，当前选择：{{project}}",
+    "clear_search": "清除项目搜索",
+    "projects_failed": "无法加载项目。",
+    "issues_failed": "无法加载工作区任务。",
+    "group_count": "{{label}}，{{count}} 项",
+    "groups": {
+      "backlog": "待规划",
+      "todo": "待办",
+      "in_progress": "进行中",
+      "in_review": "审核中",
+      "blocked": "已阻塞",
+      "done": "已完成",
+      "cancelled": "已取消"
+    }
+  },
   "tabs": {
     "all": "全部",
     "created": "我创建的",

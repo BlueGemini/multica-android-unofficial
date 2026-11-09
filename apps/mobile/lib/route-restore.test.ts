@@ -10,8 +10,8 @@ describe("resolveRestorePath", () => {
     expect(resolveRestorePath("/acme/more/settings")).toBe("/acme/more/settings");
   });
   it("restores the old Issues page as My Issues, tab All", () => {
-    expect(resolveRestorePath("/rb/more/issues")).toBe("/rb/my-issues?tab=all");
-    expect(resolveRestorePath("/rb/more/issues/")).toBe("/rb/my-issues?tab=all");
+    expect(resolveRestorePath("/rb/more/issues")).toBe("/rb/work");
+    expect(resolveRestorePath("/rb/more/issues/")).toBe("/rb/work");
     expect(resolveRestorePath("/rb/more/issues-x")).toBe("/rb/more/issues-x");
   });
   it("leaves auth, setup and root routes to their own redirects", () => {
@@ -50,7 +50,7 @@ describe("restore navigation (M4 back stack)", () => {
   });
 
   it("a restored tab root needs no extra screen", () => {
-    for (const tab of ["/rb/inbox", "/rb/my-issues", "/rb/more"]) {
+    for (const tab of ["/rb/inbox", "/rb/work", "/rb/my-issues", "/rb/more"]) {
       const n = nav();
       openRestoredRoute(n.nav, tab, "rb", n.schedule);
       expect(n.calls).toEqual([`replace ${tab}`]);
@@ -65,7 +65,7 @@ describe("restore navigation (M4 back stack)", () => {
   it("opens the old Issues page as the My Issues tab, without a redirect screen", () => {
     const n = nav();
     openRestoredRoute(n.nav, resolveRestorePath("/rb/more/issues"), "rb", n.schedule);
-    expect(n.calls).toEqual(["replace /rb/my-issues?tab=all"]);
+    expect(n.calls).toEqual(["replace /rb/work"]);
     expect(n.pending).toHaveLength(0);
   });
 

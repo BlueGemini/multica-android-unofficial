@@ -53,6 +53,14 @@ describe("paged issue lists", () => {
     expect(res.total).toBe(1234);
   });
 
+  it("the team board loads all pages past the personal list cap", async () => {
+    serve(1234);
+    const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+    const result = await client.fetchQuery(issueListOptions("ws-board"));
+    expect(result).toEqual(issues(0, 1234));
+    expect(listIssues).toHaveBeenCalledTimes(13);
+  });
+
   it("drops an issue that a position change moved onto the next page too", async () => {
     listIssues
       .mockResolvedValueOnce({ issues: issues(0, 100), total: 150 })

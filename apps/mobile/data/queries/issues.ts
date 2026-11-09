@@ -30,13 +30,13 @@ export { issueKeys } from "./issue-keys";
  * Cache shape: flat `Issue[]` (we strip `.issues` from the response) so
  * the WS updaters can patch this list with the same shape as
  * myIssueListOptions. The server sends 100 issues per request, so the
- * list loads page by page up to 1000 issues (list-pages.ts).
+ * team board loads every page in bounded batches (list-pages.ts).
  */
 export const issueListOptions = (wsId: string | null) =>
   queryOptions({
     queryKey: issueKeys.list(wsId),
     queryFn: async ({ signal, client, queryKey }) => {
-      const res = await listIssuePages({}, { signal });
+      const res = await listIssuePages({}, { signal }, Infinity);
       rememberListTotal(client, queryKey, res.total);
       return res.issues;
     },

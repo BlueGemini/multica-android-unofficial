@@ -431,6 +431,7 @@ export default function WorkspaceLayout() {
         {/* Shared filter sheet for My Issues and the workspace Issues page —
             chooses the right view-store via `?scope=my|all` URL param. */}
         <Stack.Screen name="issues-filter" options={SHEET_OPTIONS} />
+        <Stack.Screen name="work-projects" options={SHEET_OPTIONS} />
         {/* Saved views of My Issues. */}
         <Stack.Screen name="issue-views" options={SHEET_OPTIONS} />
         {/* Save the current filters as a view. */}
