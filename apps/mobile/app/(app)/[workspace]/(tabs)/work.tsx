@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useRef, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { BackHandler, FlatList, Keyboard, Pressable, ScrollView, SectionList, View, useWindowDimensions } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useQuery } from "@tanstack/react-query";
@@ -222,61 +222,35 @@ function FullscreenWorkIssues({
   const { fontScale } = useWindowDimensions();
   const largeFont = fontScale >= 1.5;
   const columnWidth = largeFont ? 264 : 224;
-  const collapsedWidth = largeFont ? 144 : 112;
   const [height, setHeight] = useState(0);
-  const [expanded, setExpanded] = useState<Set<BuiltInIssueStatus>>(() => new Set());
-  const scroll = useRef<ScrollView>(null);
-  const revealColumn = useRef<BuiltInIssueStatus | null>(null);
+  const columns = groups.filter(({ status }) => !isTerminal(status));
 
   return (
     <ScrollView
-      ref={scroll}
       horizontal
       className="flex-1"
       contentContainerClassName="gap-3 px-3 py-2"
       onLayout={(event) => setHeight(event.nativeEvent.layout.height)}
       testID="work-fullscreen-board"
     >
-      {height > 16 ? groups.map(({ status, issues }) => {
-        const collapsed = isTerminal(status) && !expanded.has(status);
-        return (
-          <View
-            key={status}
-            style={{
-              width: collapsed ? collapsedWidth : columnWidth,
-              height: collapsed ? undefined : height - 16,
-              alignSelf: "flex-start",
-            }}
-            onLayout={(event) => {
-              if (!collapsed && revealColumn.current === status) {
-                revealColumn.current = null;
-                scroll.current?.scrollTo({ x: Math.max(0, event.nativeEvent.layout.x - 12) });
-              }
-            }}
-            className="overflow-hidden rounded-lg border border-border bg-muted/20"
-            testID={`work-column-${status}`}
-          >
-            <WorkGroupHeader
-              section={{ status, count: issues.length, collapsed }}
-              compact={collapsed}
-              onToggle={() => {
-                if (collapsed) revealColumn.current = status;
-                setExpanded((previous) => toggleStatus(previous, status));
-              }}
-            />
-            {collapsed ? null : (
-              <FlatList
-                data={issues}
-                keyExtractor={(issue) => issue.id}
-                contentContainerClassName="gap-2 p-2"
-                refreshing={refreshing}
-                onRefresh={onRefresh}
-                renderItem={({ item }) => <BoardCard issue={item} onPress={() => onOpen(item)} largeFont={largeFont} />}
-              />
-            )}
-          </View>
-        );
-      }) : null}
+      {height > 16 ? columns.map(({ status, issues }) => (
+        <View
+          key={status}
+          style={{ width: columnWidth, height: height - 16 }}
+          className="overflow-hidden rounded-lg border border-border bg-muted/20"
+          testID={`work-column-${status}`}
+        >
+          <WorkGroupHeader section={{ status, count: issues.length, collapsed: false }} />
+          <FlatList
+            data={issues}
+            keyExtractor={(issue) => issue.id}
+            contentContainerClassName="gap-2 p-2"
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            renderItem={({ item }) => <BoardCard issue={item} onPress={() => onOpen(item)} largeFont={largeFont} />}
+          />
+        </View>
+      )) : null}
     </ScrollView>
   );
 }
@@ -295,16 +269,14 @@ function isTerminal(status: BuiltInIssueStatus) {
 function WorkGroupHeader({
   section,
   onToggle,
-  compact = false,
 }: {
   section: WorkSection;
-  compact?: boolean;
-  onToggle: (status: BuiltInIssueStatus) => void;
+  onToggle?: (status: BuiltInIssueStatus) => void;
 }) {
   const { t } = useT("issues");
   const { colorScheme } = useColorScheme();
   const label = t(`work.groups.${section.status}`);
-  const canCollapse = isTerminal(section.status);
+  const canCollapse = !!onToggle && isTerminal(section.status);
   const statusIcon = <StatusIcon status={section.status} size={16} />;
   const title = <Text className="flex-1 text-sm font-semibold">{label}</Text>;
   const count = <Text className="text-sm text-muted-foreground">{section.count}</Text>;
@@ -315,15 +287,8 @@ function WorkGroupHeader({
       color={THEME[colorScheme].mutedForeground}
     />
   ) : null;
-  const header = compact ? (
-    <>
-      <View className="flex-row items-center gap-1.5">{statusIcon}{title}</View>
-      <View className="flex-row items-center justify-between gap-1.5">{count}{chevron}</View>
-    </>
-  ) : <>{statusIcon}{title}{count}{chevron}</>;
-  const className = compact
-    ? "min-h-12 justify-center gap-1 bg-muted/40 px-2.5 py-2"
-    : "min-h-12 flex-row items-center gap-2 border-y border-border bg-muted/40 px-4 py-2";
+  const header = <>{statusIcon}{title}{count}{chevron}</>;
+  const className = "min-h-12 flex-row items-center gap-2 border-y border-border bg-muted/40 px-4 py-2";
   return canCollapse ? (
     <Pressable
       accessibilityRole="button"
@@ -331,7 +296,7 @@ function WorkGroupHeader({
       accessibilityState={{ expanded: !section.collapsed }}
       testID={`work-group-${section.status}`}
       className={className}
-      onPress={() => onToggle(section.status)}
+      onPress={() => onToggle?.(section.status)}
     >
       {header}
     </Pressable>
