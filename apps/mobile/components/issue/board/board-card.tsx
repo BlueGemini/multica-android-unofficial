@@ -35,8 +35,8 @@ export function BoardCard({
   onPress,
   onLongPress,
   onMove,
-  canMovePrev,
-  canMoveNext,
+  canMovePrev = false,
+  canMoveNext = false,
   largeFont,
   dragGesture,
   dragging = false,
@@ -45,11 +45,11 @@ export function BoardCard({
   issue: Issue;
   onPress: () => void;
   /** Opens the status sheet. */
-  onLongPress: () => void;
+  onLongPress?: () => void;
   /** Moves the card one column left (-1) or right (+1). */
-  onMove: (delta: -1 | 1) => void;
-  canMovePrev: boolean;
-  canMoveNext: boolean;
+  onMove?: (delta: -1 | 1) => void;
+  canMovePrev?: boolean;
+  canMoveNext?: boolean;
   largeFont: boolean;
   /** Board drag gesture (columns layout); replaces the touch long press. */
   dragGesture?: GestureType;
@@ -81,16 +81,16 @@ export function BoardCard({
         selecting
           ? undefined
           : [
-              { name: "longpress", label: t("board.change_status") },
+              ...(onLongPress ? [{ name: "longpress", label: t("board.change_status") }] : []),
               ...(canMoveNext ? [{ name: "next_column", label: t("board.move_next") }] : []),
               ...(canMovePrev ? [{ name: "prev_column", label: t("board.move_prev") }] : []),
             ]
       }
       onAccessibilityAction={(e) => {
         if (selecting) return;
-        if (e.nativeEvent.actionName === "longpress") onLongPress();
-        else if (e.nativeEvent.actionName === "next_column") onMove(1);
-        else if (e.nativeEvent.actionName === "prev_column") onMove(-1);
+        if (e.nativeEvent.actionName === "longpress") onLongPress?.();
+        else if (e.nativeEvent.actionName === "next_column") onMove?.(1);
+        else if (e.nativeEvent.actionName === "prev_column") onMove?.(-1);
       }}
       accessibilityRole={selecting ? "checkbox" : "button"}
       accessibilityState={selecting ? { checked: selected } : undefined}

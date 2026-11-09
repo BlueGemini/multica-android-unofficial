@@ -14,9 +14,11 @@ import { useT } from "@/lib/i18n";
 export function WorkProjectPicker({
   value,
   onChange,
+  onCollapse,
 }: {
   value: Project | null;
   onChange: (project: Project | null) => void;
+  onCollapse?: () => void;
 }) {
   const { t } = useT("issues");
   const [query, setQuery] = useState("");
@@ -25,7 +27,17 @@ export function WorkProjectPicker({
   return (
     <View className="flex-1">
       <View className="gap-2 px-4 pb-2 pt-3">
-        <Text className="text-base font-semibold">{t("navigation:routes.projects")}</Text>
+        <View className="flex-row items-center">
+          <Text className="flex-1 text-base font-semibold">{t("navigation:routes.projects")}</Text>
+          {onCollapse ? (
+            <IconButton
+              name="chevron-back"
+              accessibilityLabel={t("work.collapse_projects")}
+              testID="work-collapse-projects"
+              onPress={onCollapse}
+            />
+          ) : null}
+        </View>
         <View className="flex-row items-center gap-1">
           <TextField
             className="min-w-0 flex-1"

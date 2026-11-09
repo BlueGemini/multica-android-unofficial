@@ -134,13 +134,15 @@ export default memo(function TabsLayout() {
         />
         <Tabs.Screen
           name="work"
-          options={{
+          options={({ route }) => ({
+            ...((route.params as { fullscreen?: string } | undefined)?.fullscreen === "1"
+              ? { tabBarStyle: { display: "none" } } : {}),
             title: t("tabs.work"),
             tabBarAccessibilityLabel: t("tabs.work"),
             tabBarIcon: ({ color, size, focused }) => (
               <SymbolIcon name={focused ? "checklist" : "checklist.unchecked"} size={size} color={color} />
             ),
-          }}
+          })}
         />
         <Tabs.Screen
           name="chat"

@@ -41,7 +41,7 @@ Build the fork from source with `apps/mobile/scripts/android-build.sh debug --ar
 - "Assigned to me" notification category with the issue key in the headline.
 
 **Issues and Kanban board**
-- **Work** shows tasks across the current workspace, grouped by status. Search and select a project in the sidebar on wide screens, or open the project picker on a phone. Completed tasks are collapsed by default.
+- **Work** shows tasks across the current workspace, grouped by status. Search and select a project in the sidebar on wide screens, or open the project picker on a phone. On wide screens, the project sidebar can collapse and the task area can go full screen with one vertical column per status. Completed tasks are collapsed by default.
 - **My Issues** under More, with the tabs Assigned, Created and All, list grouped by status, and a **Kanban board** (status columns, status change with undo, drag and drop between columns in landscape and on tablets).
 - Filters for status, priority, project, label, due date, assignee and creator, remembered per list and workspace; server-side sorting, including manual board order.
 - **Title filter**: a regular expression hides matching issues in the lists and on the board; push notifications for them can be muted.
