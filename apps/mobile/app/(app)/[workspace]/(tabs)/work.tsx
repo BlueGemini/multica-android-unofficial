@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useMemo, useRef, useState } from "react";
 import { BackHandler, FlatList, Keyboard, Pressable, ScrollView, SectionList, View, useWindowDimensions } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useQuery } from "@tanstack/react-query";
@@ -163,7 +163,12 @@ interface WorkSection {
   status: BuiltInIssueStatus;
   count: number;
   collapsed: boolean;
-  data: Issue[];
+}
+
+interface WorkIssueActions {
+  refreshing: boolean;
+  onRefresh: () => void;
+  onOpen: (issue: Issue) => void;
 }
 
 function WorkIssues({
@@ -173,62 +178,22 @@ function WorkIssues({
   refreshing,
   onRefresh,
   onOpen,
-}: {
+}: WorkIssueActions & {
   issues: Issue[];
   projectId: string | null;
   fullscreen: boolean;
-  refreshing: boolean;
-  onRefresh: () => void;
-  onOpen: (issue: Issue) => void;
 }) {
-  const { fontScale } = useWindowDimensions();
-  const [height, setHeight] = useState(0);
   const [expanded, setExpanded] = useState<Set<BuiltInIssueStatus>>(() => new Set());
-  const sections = useMemo(() => workBoardSections(issues, projectId).map(({ status, issues }) => {
-    const collapsed = isTerminal(status) && !expanded.has(status);
-    return { key: status, status, count: issues.length, collapsed, data: collapsed ? EMPTY_ISSUES : issues };
-  }), [issues, projectId, expanded]);
-
-  const toggle = (status: BuiltInIssueStatus) => setExpanded((previous) => {
-    const next = new Set(previous);
-    if (next.has(status)) next.delete(status);
-    else next.add(status);
-    return next;
-  });
+  const groups = useMemo(() => workBoardSections(issues, projectId), [issues, projectId]);
 
   if (fullscreen) {
-    const largeFont = fontScale >= 1.5;
-    return (
-      <ScrollView
-        horizontal
-        className="flex-1"
-        contentContainerClassName="gap-3 px-3 py-2"
-        onLayout={(event) => setHeight(event.nativeEvent.layout.height)}
-        testID="work-fullscreen-board"
-      >
-        {height > 16 ? sections.map((section) => (
-          <View
-            key={section.status}
-            style={{ width: largeFont ? 264 : 224, height: height - 16 }}
-            className="overflow-hidden rounded-lg border border-border bg-muted/20"
-            testID={`work-column-${section.status}`}
-          >
-            <WorkGroupHeader section={section} onToggle={toggle} />
-            {section.collapsed ? null : (
-              <FlatList
-                data={section.data}
-                keyExtractor={(issue) => issue.id}
-                contentContainerClassName="gap-2 p-2"
-                refreshing={refreshing}
-                onRefresh={onRefresh}
-                renderItem={({ item }) => <BoardCard issue={item} onPress={() => onOpen(item)} largeFont={largeFont} />}
-              />
-            )}
-          </View>
-        )) : null}
-      </ScrollView>
-    );
+    return <FullscreenWorkIssues groups={groups} refreshing={refreshing} onRefresh={onRefresh} onOpen={onOpen} />;
   }
+
+  const sections = groups.map(({ status, issues }) => {
+    const collapsed = isTerminal(status) && !expanded.has(status);
+    return { key: status, status, count: issues.length, collapsed, data: collapsed ? EMPTY_ISSUES : issues };
+  });
 
   return (
     <SectionList<Issue, WorkSection>
@@ -238,9 +203,89 @@ function WorkIssues({
       refreshing={refreshing}
       onRefresh={onRefresh}
       renderItem={({ item }) => <IssueRow issue={item} onPress={() => onOpen(item)} />}
-      renderSectionHeader={({ section }) => <WorkGroupHeader section={section} onToggle={toggle} />}
+      renderSectionHeader={({ section }) => (
+        <WorkGroupHeader
+          section={section}
+          onToggle={(status) => setExpanded((previous) => toggleStatus(previous, status))}
+        />
+      )}
     />
   );
+}
+
+function FullscreenWorkIssues({
+  groups,
+  refreshing,
+  onRefresh,
+  onOpen,
+}: WorkIssueActions & { groups: ReturnType<typeof workBoardSections> }) {
+  const { fontScale } = useWindowDimensions();
+  const largeFont = fontScale >= 1.5;
+  const columnWidth = largeFont ? 264 : 224;
+  const collapsedWidth = largeFont ? 144 : 112;
+  const [height, setHeight] = useState(0);
+  const [expanded, setExpanded] = useState<Set<BuiltInIssueStatus>>(() => new Set());
+  const scroll = useRef<ScrollView>(null);
+  const revealColumn = useRef<BuiltInIssueStatus | null>(null);
+
+  return (
+    <ScrollView
+      ref={scroll}
+      horizontal
+      className="flex-1"
+      contentContainerClassName="gap-3 px-3 py-2"
+      onLayout={(event) => setHeight(event.nativeEvent.layout.height)}
+      testID="work-fullscreen-board"
+    >
+      {height > 16 ? groups.map(({ status, issues }) => {
+        const collapsed = isTerminal(status) && !expanded.has(status);
+        return (
+          <View
+            key={status}
+            style={{
+              width: collapsed ? collapsedWidth : columnWidth,
+              height: collapsed ? undefined : height - 16,
+              alignSelf: "flex-start",
+            }}
+            onLayout={(event) => {
+              if (!collapsed && revealColumn.current === status) {
+                revealColumn.current = null;
+                scroll.current?.scrollTo({ x: Math.max(0, event.nativeEvent.layout.x - 12) });
+              }
+            }}
+            className="overflow-hidden rounded-lg border border-border bg-muted/20"
+            testID={`work-column-${status}`}
+          >
+            <WorkGroupHeader
+              section={{ status, count: issues.length, collapsed }}
+              compact={collapsed}
+              onToggle={() => {
+                if (collapsed) revealColumn.current = status;
+                setExpanded((previous) => toggleStatus(previous, status));
+              }}
+            />
+            {collapsed ? null : (
+              <FlatList
+                data={issues}
+                keyExtractor={(issue) => issue.id}
+                contentContainerClassName="gap-2 p-2"
+                refreshing={refreshing}
+                onRefresh={onRefresh}
+                renderItem={({ item }) => <BoardCard issue={item} onPress={() => onOpen(item)} largeFont={largeFont} />}
+              />
+            )}
+          </View>
+        );
+      }) : null}
+    </ScrollView>
+  );
+}
+
+function toggleStatus(previous: Set<BuiltInIssueStatus>, status: BuiltInIssueStatus) {
+  const next = new Set(previous);
+  if (next.has(status)) next.delete(status);
+  else next.add(status);
+  return next;
 }
 
 function isTerminal(status: BuiltInIssueStatus) {
@@ -250,29 +295,35 @@ function isTerminal(status: BuiltInIssueStatus) {
 function WorkGroupHeader({
   section,
   onToggle,
+  compact = false,
 }: {
   section: WorkSection;
+  compact?: boolean;
   onToggle: (status: BuiltInIssueStatus) => void;
 }) {
   const { t } = useT("issues");
   const { colorScheme } = useColorScheme();
   const label = t(`work.groups.${section.status}`);
   const canCollapse = isTerminal(section.status);
-  const header = (
+  const statusIcon = <StatusIcon status={section.status} size={16} />;
+  const title = <Text className="flex-1 text-sm font-semibold">{label}</Text>;
+  const count = <Text className="text-sm text-muted-foreground">{section.count}</Text>;
+  const chevron = canCollapse ? (
+    <Ionicons
+      name={section.collapsed ? "chevron-forward" : "chevron-down"}
+      size={16}
+      color={THEME[colorScheme].mutedForeground}
+    />
+  ) : null;
+  const header = compact ? (
     <>
-      <StatusIcon status={section.status} size={16} />
-      <Text className="flex-1 text-sm font-semibold">{label}</Text>
-      <Text className="text-sm text-muted-foreground">{section.count}</Text>
-      {canCollapse ? (
-        <Ionicons
-          name={section.collapsed ? "chevron-forward" : "chevron-down"}
-          size={16}
-          color={THEME[colorScheme].mutedForeground}
-        />
-      ) : null}
+      <View className="flex-row items-center gap-1.5">{statusIcon}{title}</View>
+      <View className="flex-row items-center justify-between gap-1.5">{count}{chevron}</View>
     </>
-  );
-  const className = "min-h-12 flex-row items-center gap-2 border-y border-border bg-muted/40 px-4 py-2";
+  ) : <>{statusIcon}{title}{count}{chevron}</>;
+  const className = compact
+    ? "min-h-12 justify-center gap-1 bg-muted/40 px-2.5 py-2"
+    : "min-h-12 flex-row items-center gap-2 border-y border-border bg-muted/40 px-4 py-2";
   return canCollapse ? (
     <Pressable
       accessibilityRole="button"
